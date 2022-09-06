@@ -2,7 +2,7 @@
 
 ## Скачиваем Linux Cloud image
 
-    CentOS 8: https://cloud.centos.org/centos/8/x86_64/images/
+> CentOS 8: https://cloud.centos.org/centos/8/x86_64/images/
 
 ```shell
 wget https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
