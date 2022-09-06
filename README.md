@@ -2,13 +2,18 @@
 
 ## Скачиваем Linux Cloud image
 
+<details><summary>Детали</summary>
+
 > CentOS 8: https://cloud.centos.org/centos/8/x86_64/images/
 
 ```shell
 wget https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2
 ```
+</details>
 
 ## Создаем виртуальную машину, а затем настраиваем ее для использования в качестве шаблона.
+
+<details><summary>Детали</summary>
 
 Затем с помощью командной строки (или веб-интерфейса) мы создадим виртуальную машину с произвольным неиспользуемым идентификатором (9000), который позже будем использовать в качестве шаблона cloud-init.
 
@@ -46,7 +51,11 @@ qm set 9000 --serial0 socket --vga serial0
 ```shell
 qm template 9000
 ```
+</details>
+
 ## Тестирование
+
+<details><summary>Детали</summary>
 
 Чтобы убедиться, что шаблон можно использовать, мы можем создать виртуальную машину из этого шаблона и передать некоторые входные значения cloud-init, чтобы убедиться, что конечный результат является загружаемой (и подключаемой виртуальной машиной!) — это можно сделать либо с помощью веб-интерфейса, либо с помощью следующих команд CLI (заменив идентификаторы и сетевую конфигурацию на необходимые)
 
@@ -62,3 +71,52 @@ qm start 100
 ```shell
 ssh -i ~/.ssh/id_rsa centos@192.168.0.100
 ```
+</details>
+
+## Настройка Terraform
+
+<details><summary>Детали</summary>
+
+`variables.tf`
+
+Этот файл позволяет нам указать ожидаемые входные переменные, чтобы разрешить передачу их из командной строки или установить значения по умолчанию.
+
+```yml
+variable "pproxmox_api_url" {
+  default = "https://<PROXMOX IP>:8006/api2/json"
+}
+
+variable "proxmox_api_token_id" {
+  efault = "terraform-prov@pve!terraform" # API Token ID
+}
+
+variable "proxmox_api_token_secret" {
+    default = "api_token"
+}
+
+variable "template_name" {
+  default = "centos-8-cloudinit-template" # This should match name of template from Part 1
+}
+
+variable "proxmox_host" {
+  default = "<PROXMOX HOSTNAME>"
+}
+
+variable "ssh_key" {
+  default = "<YOUR PUBLIC SSH KEY>"
+}
+```
+</details>
+
+## Тестирование
+
+<details><summary>Детали</summary>
+
+```shell
+terraform init
+terraform plan
+
+# Extra optional
+terraform apply # to actually provision using Terraform use this
+```
+</details>
