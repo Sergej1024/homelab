@@ -1,0 +1,95 @@
+---
+# tasks file for nginx
+- name: Install EPEL Repo
+  ansible.builtin.yum:
+    name: epel-release
+    state: present
+  when:
+    ansible_os_family == "RedHat"
+
+- name: Install Nginx Web Server on RedHat Family
+  ansible.builtin.yum:
+    name:
+      - nginx
+      - certbot
+    state: present
+  when:
+    ansible_os_family == "RedHat"
+  notify:
+    - nginx systemd
+
+- name: Install Nginx Web Server on Debian Family
+  ansible.builtin.apt:
+    name:
+      - nginx
+      - certbot
+    state: present
+  when:
+    ansible_os_family == "Debian"
+  notify:
+    - nginx systemd
+- name: Copy http config
+  become: true
+  template:
+    src: templates/http.j2
+    dest: /etc/nginx/sites-available/http
+
+- name: Create directory for simple html
+  become: true
+  file:
+    name: /var/www/{{ domain }}/html
+    state: directory
+
+- name: disable default site config
+  become: true
+  template:
+    src: templates/default.conf
+    dest: /etc/nginx/sites-enabled/default
+
+- name: Copy html file
+  become: true
+  template:
+    src: templates/index.html
+    dest: /var/www/{{ domain }}/html
+
+- name: Create a symbolic link
+  become: true
+  file:
+    src: /etc/nginx/sites-available/http
+    dest: /etc/nginx/sites-enabled/http
+    state: link
+    force: yes
+
+- name: get test/stage cert add --test-cert for use test certificate
+  become: true
+  shell: >
+    certbot certonly -d {{ domain }} -d www.{{ domain }} -d gitlab.{{ domain }} -d grafana.{{ domain }} -d alertmanager.{{ domain }} -d prometheus.{{ domain }}
+    --email bolgovsky@mail.ru --agree-tos --webroot -w /var/www/{{ domain }}/html --non-interactive
+- name: Add cron job for certbot renewal
+  become: true
+  cron:
+    name: Certbot automatic renewal
+    job: "certbot renew"
+    month: "*/2"
+
+- name: Copy https config
+  become: true
+  template:
+    src: templates/https.j2
+    dest: /etc/nginx/sites-available/https
+
+- name: Create a symbolic link
+  become: true
+  file:
+    src: /etc/nginx/sites-available/https
+    dest: /etc/nginx/sites-enabled/https
+    state: link
+    force: yes
+
+- name: Copy http config with redirect
+  become: true
+  template:
+    src: templates/http_301.j2
+    dest: /etc/nginx/sites-available/http
+  notify:
+    - nginx systemd

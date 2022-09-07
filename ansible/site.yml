@@ -1,0 +1,13 @@
+- name: Install
+  hosts: redhat-servers
+  become: true
+  remote_user: centos
+  roles:
+    - nginx
+
+- hosts: debian-servers
+  become: true
+  remote_user: ubuntu
+  roles:
+    - nginx
+  
