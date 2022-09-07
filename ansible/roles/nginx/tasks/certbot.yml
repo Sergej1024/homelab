@@ -1,0 +1,12 @@
+---
+- name: get test/stage cert add --test-cert for use test certificate
+  # become: true
+  shell: >
+    certbot certonly -d {{ server_hostname }} -d www.{{ server_hostname }} -d cloud.{{ server_hostname }} 
+    --email {{ email_admin }} --agree-tos --webroot -w /var/www/{{ server_hostname }}/html --non-interactive
+- name: Add cron job for certbot renewal
+  # become: true
+  cron:
+    name: Certbot automatic renewal
+    job: "certbot renew"
+    month: "*/2"

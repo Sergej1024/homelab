@@ -3,34 +3,38 @@ upstream app {
     server app:80;
 }
 
-upstream gitlab {
-    server gitlab:80;
+upstream cloud {
+    server cloud:80;
 }
 
-upstream grafana {
-    server monitoring:3000;
-}
+#upstream gitlab {
+#    server gitlab:80;
+#}
 
-upstream prometheus {
-    server monitoring:9090;
-}
+#upstream grafana {
+#    server monitoring:3000;
+#}
 
-upstream alertmanager {
-    server monitoring:9093;
-}
+#upstream prometheus {
+#    server monitoring:9090;
+#}
+
+#upstream alertmanager {
+#    server monitoring:9093;
+#}
 
 #server {
 #  listen                80 default_server;
-#  server_name           {{ domain }} www.{{ domain }};
+#  server_name           {{ server_hostname }} www.{{ server_hostname }};
 #
-#  return 301 https://{{ domain }}$request_uri;
+#  return 301 https://{{ server_hostname }}$request_uri;
 #}
 
 server {
   listen               443 ssl;
-  server_name          {{ domain }} www.{{ domain }};
-  ssl_certificate      /etc/letsencrypt/live/{{ domain }}/fullchain.pem;
-  ssl_certificate_key  /etc/letsencrypt/live/{{ domain }}/privkey.pem;
+  server_name          {{ server_hostname }} www.{{ server_hostname }};
+  ssl_certificate      /etc/letsencrypt/live/{{ server_hostname }}/fullchain.pem;
+  ssl_certificate_key  /etc/letsencrypt/live/{{ server_hostname }}/privkey.pem;
   location / {
     proxy_set_header   Host $host;
     proxy_set_header   X-Real-IP $remote_addr;
@@ -43,62 +47,78 @@ server {
 
 server {
   listen          443 ssl;
-  server_name     gitlab.{{ domain }};
+  server_name     cloud.{{ server_hostname }};
   error_page 497 https://$host:$server_port$request_uri;
-  ssl_certificate      /etc/letsencrypt/live/{{ domain }}/fullchain.pem;
-  ssl_certificate_key  /etc/letsencrypt/live/{{ domain }}/privkey.pem;
+  ssl_certificate      /etc/letsencrypt/live/{{ server_hostname }}/fullchain.pem;
+  ssl_certificate_key  /etc/letsencrypt/live/{{ server_hostname }}/privkey.pem;
 
   location / {
     proxy_set_header   Host $host:$server_port;
     proxy_set_header   X-Real-IP $remote_addr;
     proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header   X-Forwarded-Proto $scheme;
-    proxy_pass         http://gitlab;
+    proxy_pass         http://cloud;
   }
 }
 
-server {
-  listen          443 ssl;
-  server_name     grafana.{{ domain }};
-  ssl_certificate      /etc/letsencrypt/live/{{ domain }}/fullchain.pem;
-  ssl_certificate_key  /etc/letsencrypt/live/{{ domain }}/privkey.pem;
+#server {
+#  listen          443 ssl;
+#  server_name     gitlab.{{ server_hostname }};
+#  error_page 497 https://$host:$server_port$request_uri;
+#  ssl_certificate      /etc/letsencrypt/live/{{ server_hostname }}/fullchain.pem;
+#  ssl_certificate_key  /etc/letsencrypt/live/{{ server_hostname }}/privkey.pem;
+#
+#  location / {
+#    proxy_set_header   Host $host:$server_port;
+#    proxy_set_header   X-Real-IP $remote_addr;
+#    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+#    proxy_set_header   X-Forwarded-Proto $scheme;
+#    proxy_pass         http://gitlab;
+#  }
+#}
 
-  location / {
-    proxy_set_header   Host $host:$server_port;
-    proxy_set_header   X-Real-IP $remote_addr;
-    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header   X-Forwarded-Proto $scheme;
-    proxy_pass         http://grafana;
-  }
-}
+#server {
+#  listen          443 ssl;
+#  server_name     grafana.{{ server_hostname }};
+#  ssl_certificate      /etc/letsencrypt/live/{{ server_hostname }}/fullchain.pem;
+#  ssl_certificate_key  /etc/letsencrypt/live/{{ server_hostname }}/privkey.pem;
+#
+#  location / {
+#    proxy_set_header   Host $host:$server_port;
+#    proxy_set_header   X-Real-IP $remote_addr;
+#    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+#    proxy_set_header   X-Forwarded-Proto $scheme;
+#    proxy_pass         http://grafana;
+#  }
+#}
 
-server {
-  listen          443 ssl;
-  server_name     prometheus.{{ domain }};
-  ssl_certificate      /etc/letsencrypt/live/{{ domain }}/fullchain.pem;
-  ssl_certificate_key  /etc/letsencrypt/live/{{ domain }}/privkey.pem;
+#server {
+#  listen          443 ssl;
+#  server_name     prometheus.{{ server_hostname }};
+#  ssl_certificate      /etc/letsencrypt/live/{{ server_hostname }}/fullchain.pem;
+#  ssl_certificate_key  /etc/letsencrypt/live/{{ server_hostname }}/privkey.pem;
+#
+#  location / {
+#    proxy_set_header   Host $host:$server_port;
+#    proxy_set_header   X-Real-IP $remote_addr;
+#    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+#    proxy_set_header   X-Forwarded-Proto $scheme;
+#    proxy_pass         http://prometheus;
+#  }
+#}
 
-  location / {
-    proxy_set_header   Host $host:$server_port;
-    proxy_set_header   X-Real-IP $remote_addr;
-    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header   X-Forwarded-Proto $scheme;
-    proxy_pass         http://prometheus;
-  }
-}
-
-server {
-  listen          443 ssl;
-  server_name     alertmanager.{{ domain }};
-  ssl_certificate      /etc/letsencrypt/live/{{ domain }}/fullchain.pem;
-  ssl_certificate_key  /etc/letsencrypt/live/{{ domain }}/privkey.pem;
-
-  location / {
-    proxy_set_header   Host $host:$server_port;
-    proxy_set_header   X-Real-IP $remote_addr;
-    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header   X-Forwarded-Proto $scheme;
-    proxy_pass         http://alertmanager;
-  }
-}
+#server {
+#  listen          443 ssl;
+#  server_name     alertmanager.{{ server_hostname }};
+#  ssl_certificate      /etc/letsencrypt/live/{{ server_hostname }}/fullchain.pem;
+#  ssl_certificate_key  /etc/letsencrypt/live/{{ server_hostname }}/privkey.pem;
+#
+#  location / {
+#    proxy_set_header   Host $host:$server_port;
+#    proxy_set_header   X-Real-IP $remote_addr;
+#    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+#    proxy_set_header   X-Forwarded-Proto $scheme;
+#    proxy_pass         http://alertmanager;
+#  }
+#}
 Footer

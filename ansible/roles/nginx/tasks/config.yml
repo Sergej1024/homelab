@@ -1,0 +1,54 @@
+---
+- name: Copy http config
+  # become: true
+  template:
+    src: templates/http.j2
+    dest: /etc/nginx/sites-available/http
+
+- name: Create directory for simple html
+  # become: true
+  file:
+    name: /var/www/{{ server_hostname }}/html
+    state: directory
+
+- name: disable default site config
+  # become: true
+  template:
+    src: templates/default.conf
+    dest: /etc/nginx/sites-enabled/default
+
+- name: Copy html file
+  # become: true
+  template:
+    src: templates/index.html
+    dest: /var/www/{{ server_hostname }}/html
+
+- name: Create a symbolic link
+  # become: true
+  file:
+    src: /etc/nginx/sites-available/http
+    dest: /etc/nginx/sites-enabled/http
+    state: link
+    force: yes
+
+- name: Copy https config
+  # become: true
+  template:
+    src: templates/https.j2
+    dest: /etc/nginx/sites-available/https
+
+- name: Create a symbolic link
+  # become: true
+  file:
+    src: /etc/nginx/sites-available/https
+    dest: /etc/nginx/sites-enabled/https
+    state: link
+    force: yes
+
+- name: Copy http config with redirect
+  # become: true
+  template:
+    src: templates/http_301.j2
+    dest: /etc/nginx/sites-available/http
+  notify:
+    - nginx systemd

@@ -1,0 +1,29 @@
+---
+- name: Install EPEL Repo
+  ansible.builtin.yum:
+    name: epel-release
+    state: present
+  when:
+    ansible_os_family == "RedHat"
+
+- name: Install Nginx Web Server on RedHat Family
+  ansible.builtin.yum:
+    name:
+      - nginx
+      - certbot
+    state: present
+  when:
+    ansible_os_family == "RedHat"
+  # notify:
+  #   - nginx systemd
+
+- name: Install Nginx Web Server on Debian Family
+  ansible.builtin.apt:
+    name:
+      - nginx
+      - certbot
+    state: present
+  when:
+    ansible_os_family == "Debian"
+  # notify:
+  #   - nginx systemd
