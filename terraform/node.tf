@@ -26,7 +26,7 @@ resource "proxmox_vm_qemu" "test_server" {
     size = "40G"
     type = "scsi"
     storage = "vm"
-    iothread = 1
+    iothread = 0
   }
 
   # if you want two NICs, just copy this whole network section and duplicate it
